@@ -1,0 +1,174 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="cast-sender-import.html">
+
+<!--
+`scary-cast-sender`
+Helper element to develop Google Cast Chrome senders
+
+@demo demo/index.html
+-->
+
+<dom-module id="scary-cast-sender">
+  <template>
+    <template is="dom-if" if="[[apiReady]]">
+      <content></content>
+    </template>
+  </template>
+
+  <script>
+    (function () {
+
+      var CONNECTION_STATUS ={
+        UNAVAIABLE: 0,
+        DISCONNECTED: 1,
+        CONNECTING: 2,
+        CONNECTED: 3
+      };
+
+      Polymer({
+
+        is: 'scary-cast-sender',
+
+        properties: {
+
+          /**
+           * ID of the Receiver application as registered in the
+           * Google Cast SDK Developer Console
+           * @required
+           */
+          applicationId: String,
+
+          /**
+           * Will be set true once the Google Cast Sender API has finished
+           * loading. Any content of this element won't be added to the DOM
+           * until this happens.
+           */
+          apiReady: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+
+          /**
+           * State of the Cast Session
+           * 0 = No receivers available
+           * 1 = Disconnected, but receivers available
+           * 2 = Connecting
+           * 3 = Connected
+           */
+          state: {
+            type: Number,
+            value: 0
+          }
+        },
+
+        observers: [
+          '_updateIconState(state)'
+        ],
+
+        ready: function () {
+          // Check if Cast API is loaded already
+          if (!!window.chrome && !!window.chrome.cast && window.chrome.cast.isAvailable) {
+            this._initialize();
+            return;
+          }
+          // Set-up a callback otherwise
+          window.__onGCastApiAvailable = function (loaded, errorInfo) {
+            if (loaded) {
+              this._initialize();
+            } else {
+              this.fire('error', errorInfo);
+            }
+          }.bind(this);
+        },
+
+        _initialize: function () {
+          if (!this.applicationId) {
+            throw new Error('applicationId has not been configured');
+          }
+          var sessionRequest = new window.chrome.cast.SessionRequest(this.applicationId);
+          var apiConfig = new window.chrome.cast.ApiConfig(
+            sessionRequest,
+            this._sessionListener.bind(this),
+            this._receiverListener.bind(this)
+          );
+          window.chrome.cast.initialize(
+            apiConfig,
+            this._onInitSuccess.bind(this),
+            this._onError.bind(this)
+          );
+        },
+
+        _onInitSuccess: function () {
+          this.apiReady = true;
+          this.fire('api-ready');
+          Polymer.dom(this).observeNodes(this._nodesChanged.bind(this));
+          this.state = CONNECTION_STATUS.UNAVAILABLE;
+        },
+
+        _nodesChanged: function (info) {
+          var updateIcons = false;
+          info.addedNodes.forEach(function (node) {
+            if (node.tagName === 'SCARY-CAST-ICON') {
+              this.listen(node, 'tap', '_castIconClick');
+              node.state = this.state;
+              updateIcons = true;
+            }
+          }.bind(this));
+
+          info.removedNodes.forEach(function (node) {
+            if (node.tagName === 'SCARY-CAST-ICON') {
+              updateIcons = true;
+            }
+          });
+
+          if (updateIcons) {
+            this._icons = Polymer.dom(this).querySelectorAll('scary-cast-icon');
+          }
+        },
+
+        _onError: function (e) {
+          this.fire('error', e);
+          console.log(e);
+          this.state = CONNECTION_STATUS.DISCONNECTED;
+        },
+
+        _sessionListener: function (session) {
+          console.log(session);
+        },
+
+        _receiverListener: function (availability) {
+          if (availability === window.chrome.cast.ReceiverAvailability.AVAILABLE) {
+            this.state = CONNECTION_STATUS.DISCONNECTED;
+          } else {
+            this.state = CONNECTION_STATUS.UNAVAIABLE;
+          }
+        },
+
+        _updateIconState: function (state) {
+          if (!this._icons) {
+            return;
+          }
+          this._icons.forEach(function (icon) {
+            icon.state = state;
+          });
+        },
+
+        _castIconClick: function () {
+          this.state = CONNECTION_STATUS.CONNECTING;
+          window.chrome.cast.requestSession(
+            this._onRequestSessionSuccess.bind(this),
+            this._onError.bind(this)
+          );
+        },
+
+        _onRequestSessionSuccess: function (session) {
+          this._session = session;
+          this.fire('session-started', session);
+          this.state = CONNECTION_STATUS.CONNECTED;
+        }
+      });
+    }());
+  </script>
+</dom-module>

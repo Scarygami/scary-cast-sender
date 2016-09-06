@@ -1,0 +1,83 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<!--
+`scary-cast-icon`
+
+@demo demo/index.html
+-->
+
+<dom-module id="scary-cast-icon">
+  <template>
+    <style>
+      [invisible] {
+        visibility: hidden;
+      }
+
+      #connecting {
+        position: relative;
+        width: 40px;
+        height: 40px;
+      }
+
+      @keyframes connecting {
+        0% { opacity: 1; }
+        17% { opacity: 1; }
+        33% { opacity: 0; }
+        83% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+
+      #connecting > paper-icon-button {
+        position: absolute;
+        animation-name: connecting;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-duration: 0.6s;
+      }
+
+      #connecting1 {
+        animation-delay: 0;
+      }
+      #connecting2 {
+        animation-delay: 0.2s;
+      }
+      #connecting3 {
+        animation-delay: 0.4s;
+      }
+    </style>
+    <iron-pages selected="[[state]]">
+      <paper-icon-button invisible></paper-icon-button>
+      <paper-icon-button src="images/ic_cast_24dp.svg"></paper-icon-button>
+      <div id="connecting">
+        <paper-icon-button id="connecting1" src="images/ic_cast0_24dp.svg"></paper-icon-button>
+        <paper-icon-button id="connecting2" src="images/ic_cast1_24dp.svg"></paper-icon-button>
+        <paper-icon-button id="connecting3" src="images/ic_cast2_24dp.svg"></paper-icon-button>
+      </div>
+      <paper-icon-button src="images/ic_cast_connected_24dp.svg"></paper-icon-button>
+    </iron-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'scary-cast-icon',
+
+      properties: {
+
+        /**
+         * State of the Cast Session
+         * 0 = No receivers available
+         * 1 = Disconnected, but receivers available
+         * 2 = Connecting
+         * 3 = Connected
+         */
+        state: {
+          type: Number,
+          value: 0
+        }
+      },
+
+    });
+  </script>
+</dom-module>

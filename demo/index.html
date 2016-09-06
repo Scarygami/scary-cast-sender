@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <title>scary-cast-sender demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+
+    <link rel="import" href="../scary-cast-sender.html">
+    <link rel="import" href="../scary-cast-icon.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+
+    <div class="vertical-section-container centered">
+      <h3>Basic scary-cast-sender Demo</h3>
+      <demo-snippet>
+        <template>
+          <scary-cast-sender application-id="5AA1E8B4">
+            <div>Cast API is ready.</div>
+            <scary-cast-icon></scary-cast-icon>
+          </scary-cast-sender>
+        </template>
+      </demo-snippet>
+    </div>
+
+  </body>
+</html>
